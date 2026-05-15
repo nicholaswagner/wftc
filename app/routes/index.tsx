@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { HomeLayout } from 'fumadocs-ui/layouts/home';
 import { baseOptions } from '@/lib/layout.shared';
 
@@ -14,12 +14,13 @@ function Index() {
         <p className="text-xl text-muted-foreground mb-8">
           Campaign notes and documentation for our Pathfinder 2e game.
         </p>
-        <a
-          href="/docs"
+        <Link
+          to="/docs/$"
+          params={{ _splat: '' }}
           className="bg-primary text-primary-foreground px-6 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity"
         >
           View Documentation
-        </a>
+        </Link>
       </div>
     </HomeLayout>
   );

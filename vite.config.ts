@@ -5,6 +5,8 @@ import tailwindcss from '@tailwindcss/vite';
 import mdx from 'fumadocs-mdx/vite';
 import { globSync } from 'glob';
 
+const BASE_PATH = process.env.BASE_PATH ?? '/';
+
 function contentPages() {
   const files = globSync('**/*.mdx', { cwd: 'content' });
   const paths = new Set<string>();
@@ -18,12 +20,16 @@ function contentPages() {
 }
 
 export default defineConfig({
+  base: BASE_PATH,
   plugins: [
     tailwindcss(),
     tsconfigPaths(),
     mdx(),
     tanstackStart({
       srcDirectory: 'app',
+      router: {
+        basepath: BASE_PATH,
+      },
       pages: [
         { path: '/' },
         ...contentPages(),

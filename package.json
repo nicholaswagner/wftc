@@ -12,7 +12,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "bun run sync-content && vite build",
+    "build": "bun run sync-content && vite build && cp dist/client/index.html dist/client/404.html",
     "preview": "vite preview",
     "sync-content": "bun run scripts/sync.ts",
     "postinstall": "fumadocs-mdx"
