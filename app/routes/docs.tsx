@@ -1,0 +1,44 @@
+import type { Route } from './+types/docs';
+import { DocsLayout } from 'fumadocs-ui/layouts/docs';
+import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/layouts/docs/page';
+import { useFumadocsLoader } from 'fumadocs-core/source/client';
+import browserCollections from 'collections/browser';
+import { source } from '@/lib/source';
+import { baseOptions } from '@/lib/layout.shared';
+import { useMDXComponents } from '@/app/components/mdx';
+
+export async function loader({ params }: Route.LoaderArgs) {
+  const splat = params['*'] ?? '';
+  const slugs = splat.split('/').filter((v) => v.length > 0);
+  const page = source.getPage(slugs);
+  if (!page) throw new Response('Not found', { status: 404 });
+
+  return {
+    path: page.path,
+    pageTree: await source.serializePageTree(source.getPageTree()),
+  };
+}
+
+const clientLoader = browserCollections.docs.createClientLoader({
+  component({ toc, frontmatter, default: Mdx }) {
+    return (
+      <DocsPage toc={toc}>
+        <DocsTitle>{frontmatter.title}</DocsTitle>
+        <DocsDescription>{frontmatter.description}</DocsDescription>
+        <DocsBody>
+          <Mdx components={useMDXComponents()} />
+        </DocsBody>
+      </DocsPage>
+    );
+  },
+});
+
+export default function Page({ loaderData }: Route.ComponentProps) {
+  const { path, pageTree } = useFumadocsLoader(loaderData);
+
+  return (
+    <DocsLayout {...baseOptions()} tree={pageTree}>
+      {clientLoader.useContent(path)}
+    </DocsLayout>
+  );
+}
