@@ -7,10 +7,18 @@
     "strict": true,
     "skipLibCheck": true,
     "baseUrl": ".",
+    "rootDirs": [".", "./.react-router/types"],
     "paths": {
       "@/*": ["./*"],
       "collections/*": ["./.source/*"]
     }
   },
-  "include": ["app/**/*", "lib/**/*", "source.config.ts", "scripts/**/*", ".source/*"]
+  "include": [
+    ".react-router/types/**/*",
+    "app/**/*",
+    "lib/**/*",
+    "source.config.ts",
+    "scripts/**/*",
+    ".source/*"
+  ]
 }

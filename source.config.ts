@@ -1,4 +1,4 @@
-import { defineDocs } from 'fumadocs-mdx/config';
+import { defineConfig, defineDocs } from 'fumadocs-mdx/config';
 import remarkGfm from 'remark-gfm';
 
 export const docs = defineDocs({
@@ -8,6 +8,9 @@ export const docs = defineDocs({
       includeProcessedMarkdown: true,
     },
   },
+});
+
+export default defineConfig({
   mdxOptions: {
     remarkPlugins: [remarkGfm],
   },
