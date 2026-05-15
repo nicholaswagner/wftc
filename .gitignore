@@ -1,0 +1,9 @@
+.*
+!.gitignore
+submodules
+bun.lock
+public
+dist
+content
+SPECS
+node_modules
