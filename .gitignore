@@ -1,10 +1,10 @@
 .*
 !.gitignore
 !.github
-submodules
-bun.lock
-public
+!.gitmodules
+!.nojekyll
+
+node_modules
 dist
 content
-SPECS
-node_modules
+public/vault

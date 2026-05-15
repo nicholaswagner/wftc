@@ -7,7 +7,7 @@
 - [x] Add Orama search functionality (static mode)
 - [x] Enable "Docs for LLM" features (llms.txt, full.txt)
 - [x] Migrate from plain Vite SPA to TanStack Start SPA + prerender (static SSG via `@tanstack/react-start/plugin/vite`)
-- [ ] Deploy documentation to GitHub Pages (GitHub Actions workflow; publish from `dist/client/`)
+- [x] Deploy documentation to GitHub Pages (GitHub Actions workflow; publish `dist/client/` under `/wftc/` base path)
 - [ ] Investigate remark-image `useImport` behavior (dev preload URLs use `/public/vault/...`; verify production build serves images correctly)
 - [ ] Add OG Image generation
 - [ ] Implement custom TTRPG components (Stat blocks, etc.)

@@ -1,0 +1,3 @@
+[submodule "submodules/warforthecrown"]
+	path = submodules/warforthecrown
+	url = https://github.com/nicholaswagner/warforthecrown.git
