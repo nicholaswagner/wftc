@@ -15,11 +15,11 @@ export function processLinks(content: string, writeupFiles: Set<string>): string
       // It's an internal writeup link. 
       // We need to figure out the path. For now, let's assume a flat structure in /docs
       // or we can make it more robust in sync.ts
-      return `[${text}](/docs/${slugify(link)})`;
+      return `[${text}](/${slugify(link)})`;
     }
 
     // Otherwise, point to placeholder
-    return `[${text}](/docs/placeholder)`;
+    return `[${text}](/placeholder)`;
   });
 }
 

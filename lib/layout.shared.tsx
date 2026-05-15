@@ -5,12 +5,5 @@ export function baseOptions(): BaseLayoutProps {
     nav: {
       title: 'War for the Crown',
     },
-    links: [
-      {
-        text: 'Documentation',
-        url: '/docs',
-        active: 'nested-url',
-      },
-    ],
   };
 }
