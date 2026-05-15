@@ -9,11 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as StaticDotjsonRouteImport } from './routes/static[.]json'
 import { Route as LlmsDottxtRouteImport } from './routes/llms[.]txt'
 import { Route as FullDottxtRouteImport } from './routes/full[.]txt'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DocsSplatRouteImport } from './routes/docs/$'
 
+const StaticDotjsonRoute = StaticDotjsonRouteImport.update({
+  id: '/static.json',
+  path: '/static.json',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LlmsDottxtRoute = LlmsDottxtRouteImport.update({
   id: '/llms.txt',
   path: '/llms.txt',
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/full.txt': typeof FullDottxtRoute
   '/llms.txt': typeof LlmsDottxtRoute
+  '/static.json': typeof StaticDotjsonRoute
   '/docs/$': typeof DocsSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/full.txt': typeof FullDottxtRoute
   '/llms.txt': typeof LlmsDottxtRoute
+  '/static.json': typeof StaticDotjsonRoute
   '/docs/$': typeof DocsSplatRoute
 }
 export interface FileRoutesById {
@@ -52,25 +60,34 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/full.txt': typeof FullDottxtRoute
   '/llms.txt': typeof LlmsDottxtRoute
+  '/static.json': typeof StaticDotjsonRoute
   '/docs/$': typeof DocsSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/full.txt' | '/llms.txt' | '/docs/$'
+  fullPaths: '/' | '/full.txt' | '/llms.txt' | '/static.json' | '/docs/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/full.txt' | '/llms.txt' | '/docs/$'
-  id: '__root__' | '/' | '/full.txt' | '/llms.txt' | '/docs/$'
+  to: '/' | '/full.txt' | '/llms.txt' | '/static.json' | '/docs/$'
+  id: '__root__' | '/' | '/full.txt' | '/llms.txt' | '/static.json' | '/docs/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   FullDottxtRoute: typeof FullDottxtRoute
   LlmsDottxtRoute: typeof LlmsDottxtRoute
+  StaticDotjsonRoute: typeof StaticDotjsonRoute
   DocsSplatRoute: typeof DocsSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/static.json': {
+      id: '/static.json'
+      path: '/static.json'
+      fullPath: '/static.json'
+      preLoaderRoute: typeof StaticDotjsonRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/llms.txt': {
       id: '/llms.txt'
       path: '/llms.txt'
@@ -106,6 +123,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   FullDottxtRoute: FullDottxtRoute,
   LlmsDottxtRoute: LlmsDottxtRoute,
+  StaticDotjsonRoute: StaticDotjsonRoute,
   DocsSplatRoute: DocsSplatRoute,
 }
 export const routeTree = rootRouteImport

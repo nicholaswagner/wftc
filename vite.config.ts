@@ -29,6 +29,7 @@ export default defineConfig({
         ...contentPages(),
         { path: '/llms.txt' },
         { path: '/full.txt' },
+        { path: '/static.json' },
       ],
       prerender: {
         enabled: true,
