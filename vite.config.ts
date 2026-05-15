@@ -26,6 +26,9 @@ export default defineConfig({
     tsconfigPaths(),
     mdx(),
     tanstackStart({
+      spa: {
+        enabled: true,
+      },
       srcDirectory: 'app',
       router: {
         basepath: BASE_PATH,
