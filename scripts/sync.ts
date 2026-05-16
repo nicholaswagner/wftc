@@ -14,7 +14,7 @@ import { processLinks } from './process-links';
 
 const VAULT_DIR = 'submodules/warforthecrown';
 const TARGET_DIR = 'content';
-const README_FILE = 'readme.md';
+const README_FILE = 'README.md';
 
 // Page slugs to omit from the sidebar (still reachable by URL).
 // Names match the file/folder slug under content/ (no extension).
@@ -193,7 +193,9 @@ async function sync() {
     const indexFrontmatter = `---\ntitle: "War for the Crown"\ndescription: "Campaign notes, session logs, and reference material for our weekly Pathfinder 2e game."\n---\n\n`;
     writeFileSync(join(TARGET_DIR, 'index.mdx'), indexFrontmatter + readme);
   } else {
-    console.warn(`Vault README not found at ${readmeSource}; skipping landing page.`);
+    throw new Error(
+      `Vault README not found at ${readmeSource}. Landing page would be empty. Check case-sensitive filename.`,
+    );
   }
 
   // System images — copy unconditionally so React components can reference them.
