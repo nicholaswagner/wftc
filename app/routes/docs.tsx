@@ -34,6 +34,9 @@ const clientLoader = browserCollections.docs.createClientLoader({
 });
 
 export default function Page({ loaderData }: Route.ComponentProps) {
+  if (!loaderData) {
+    throw new Response('Not found', { status: 404 });
+  }
   const { path, pageTree } = useFumadocsLoader(loaderData);
 
   return (

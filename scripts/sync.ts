@@ -1,5 +1,6 @@
 import { glob } from 'glob';
 import {
+  copyFileSync,
   existsSync,
   mkdirSync,
   readFileSync,
@@ -21,6 +22,12 @@ const SIDEBAR_HIDDEN = new Set(['placeholder']);
 
 // Folder slugs (relative to content/) that should be expanded by default.
 const SIDEBAR_DEFAULT_OPEN = new Set(['narrative', 'reference']);
+
+// Images referenced from React components (not from markdown wikilinks).
+// These get copied unconditionally so they're available at /vault/<name>.
+const SYSTEM_IMAGES = ['404.png'];
+const VAULT_IMAGE_DIR = 'submodules/warforthecrown/images';
+const PUBLIC_VAULT_DIR = 'public/vault';
 
 // Top-level vault folders that get synced into content/.
 // Each entry maps a vault folder to its slugified target prefix.
@@ -187,6 +194,17 @@ async function sync() {
     writeFileSync(join(TARGET_DIR, 'index.mdx'), indexFrontmatter + readme);
   } else {
     console.warn(`Vault README not found at ${readmeSource}; skipping landing page.`);
+  }
+
+  // System images — copy unconditionally so React components can reference them.
+  for (const name of SYSTEM_IMAGES) {
+    const src = join(VAULT_IMAGE_DIR, name);
+    if (!existsSync(src)) {
+      console.warn(`System image missing: ${src}`);
+      continue;
+    }
+    if (!existsSync(PUBLIC_VAULT_DIR)) mkdirSync(PUBLIC_VAULT_DIR, { recursive: true });
+    copyFileSync(src, join(PUBLIC_VAULT_DIR, name));
   }
 
   // Placeholder page for unresolved wikilinks.
