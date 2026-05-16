@@ -31,8 +31,9 @@ export function processImages(content: string): string {
     }
 
     if (found) {
-      // In TanStack Start, public files are served from /
-      return `![${filename}](/vault/${filename})`;
+      // URL-encode the filename so spaces / special characters survive the
+      // markdown parser and the eventual HTTP request.
+      return `![${filename}](/vault/${encodeURI(filename)})`;
     }
 
     return `*Image not found: ${filename}*`;
