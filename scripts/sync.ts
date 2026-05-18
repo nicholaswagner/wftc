@@ -54,9 +54,43 @@ function escapeYaml(value: string): string {
 }
 
 /**
+ * Split a markdown file into its (optional) YAML frontmatter block and body.
+ * Returns `frontmatter: null` if the file doesn't start with a `---` block.
+ * The returned `frontmatter` is the YAML body between the fences (no fences).
+ */
+function splitFrontmatter(content: string): { frontmatter: string | null; body: string } {
+  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
+  if (!match) return { frontmatter: null, body: content };
+  return { frontmatter: match[1], body: content.slice(match[0].length) };
+}
+
+/**
+ * Merge defaults into an existing YAML frontmatter block. Only injects
+ * `title` / `description` if they aren't already present. Other vault-supplied
+ * keys (date, type, session_number, tags, locations, ...) pass through untouched.
+ */
+function mergeFrontmatter(
+  existing: string | null,
+  defaults: { title: string; description: string },
+): string {
+  const titleLine = `title: "${escapeYaml(defaults.title)}"`;
+  const descLine = `description: "${escapeYaml(defaults.description)}"`;
+  if (existing === null) return `---\n${titleLine}\n${descLine}\n---\n\n`;
+  const hasTitle = /^title:\s/m.test(existing);
+  const hasDescription = /^description:\s/m.test(existing);
+  const lines: string[] = [];
+  if (!hasTitle) lines.push(titleLine);
+  lines.push(existing);
+  if (!hasDescription) lines.push(descLine);
+  return `---\n${lines.join('\n')}\n---\n\n`;
+}
+
+/**
  * Escape characters that MDX would otherwise interpret as JSX/expression syntax,
  * leaving fenced code blocks and inline code spans untouched.
  *
+ * - Markdown autolinks `<https://...>` / `<mailto:...>` -> `[url](url)`. MDX
+ *   would otherwise parse the `<` as the start of a JSX element and reject it.
  * - `<` not followed by a letter, `!`, `/`, or `>` -> `&lt;` (handles `<--`, `<-` etc.).
  * - Bare `{` and `}` -> `\{`, `\}` (Obsidian sometimes uses `{prose}` annotations).
  */
@@ -70,6 +104,7 @@ function sanitizeMdx(content: string): string {
         .map((seg, j) => {
           if (j % 2 === 1) return seg;
           return seg
+            .replace(/<((?:https?|mailto):[^>\s]+)>/g, '[$1]($1)')
             .replace(/<(?![a-zA-Z!/>])/g, '&lt;')
             .replace(/\{/g, '\\{')
             .replace(/\}/g, '\\}');
@@ -136,19 +171,23 @@ async function sync() {
     const targetPath = join(TARGET_DIR, entry.targetRel);
     mkdirSync(dirname(targetPath), { recursive: true });
 
-    let content = readFileSync(entry.sourcePath, 'utf-8');
-    content = content.replace(/<br>/g, '<br/>');
-    content = sanitizeMdx(content);
+    const raw = readFileSync(entry.sourcePath, 'utf-8');
+    const { frontmatter: existingFm, body: rawBody } = splitFrontmatter(raw);
+
+    // Run MDX/wikilink processors against the body only — YAML metadata
+    // should stay verbatim so downstream consumers see the original strings
+    // (e.g. `"[[The Palace of Birdsong]]"` rather than a resolved markdown link).
+    let body = rawBody.replace(/<br>/g, '<br/>');
+    body = sanitizeMdx(body);
+    body = processImages(body);
+    body = processWikilinks(body);
+    body = processLinks(body, linkIndex);
 
     const title = basename(entry.relPath, '.md');
     const description = `Campaign notes for ${title}`;
-    const frontmatter = `---\ntitle: "${escapeYaml(title)}"\ndescription: "${escapeYaml(description)}"\n---\n\n`;
+    const frontmatter = mergeFrontmatter(existingFm, { title, description });
 
-    content = processImages(content);
-    content = processWikilinks(content);
-    content = processLinks(content, linkIndex);
-
-    writeFileSync(targetPath, frontmatter + content);
+    writeFileSync(targetPath, frontmatter + body);
 
     // Remember every directory that was created so we can write meta.json later.
     let dir = dirname(entry.targetRel);
