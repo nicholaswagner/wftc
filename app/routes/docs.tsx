@@ -17,6 +17,7 @@ import { baseOptions } from '@/lib/layout.shared';
 import { useMDXComponents } from '@/app/components/mdx';
 import { GraphProvider } from '@/app/components/campaign-graph';
 import { buildGraph } from '@/app/lib/build-graph';
+import { getPageImage } from '@/app/lib/og';
 
 export async function loader({ params }: Route.LoaderArgs) {
   const splat = params['*'] ?? '';
@@ -28,7 +29,22 @@ export async function loader({ params }: Route.LoaderArgs) {
     path: page.path,
     pageTree: await source.serializePageTree(source.getPageTree()),
     graph: slugs.length === 0 ? buildGraph() : null,
+    slugs,
+    title: page.data.title,
+    description: page.data.description,
   };
+}
+
+export function meta({ data }: Route.MetaArgs) {
+  if (!data) return [];
+  const imageUrl = `${import.meta.env.BASE_URL}${getPageImage(data.slugs).url.slice(1)}`;
+  return [
+    { title: data.title },
+    { name: 'description', content: data.description },
+    { property: 'og:title', content: data.title },
+    { property: 'og:description', content: data.description },
+    { property: 'og:image', content: imageUrl },
+  ];
 }
 
 const VAULT_REPO = 'nicholaswagner/warforthecrown';

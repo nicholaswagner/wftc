@@ -14,8 +14,9 @@
   },
   "scripts": {
     "dev": "react-router dev",
-    "build": "bun run sync-content && react-router build && bun run flatten-basepath",
+    "build": "bun run sync-content && bun run generate-og && react-router build && bun run flatten-basepath",
     "flatten-basepath": "bun run scripts/flatten-basepath.ts",
+    "generate-og": "bun run scripts/generate-og.tsx",
     "preview": "vite preview --outDir build/client",
     "sync-content": "bun run scripts/sync.ts",
     "postinstall": "fumadocs-mdx"
@@ -26,6 +27,7 @@
     "@react-router/dev": "^7.15.1",
     "@react-router/node": "^7.15.1",
     "@tailwindcss/vite": "^4.3.0",
+    "@takumi-rs/image-response": "^1.3.0",
     "@types/mdx": "^2.0.13",
     "@vitejs/plugin-react": "^6.0.2",
     "class-variance-authority": "^0.7.1",
