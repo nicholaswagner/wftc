@@ -5,5 +5,6 @@ export function baseOptions(): BaseLayoutProps {
     nav: {
       title: 'War for the Crown',
     },
+    githubUrl: 'https://github.com/nicholaswagner/warforthecrown',
   };
 }

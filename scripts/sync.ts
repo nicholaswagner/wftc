@@ -14,6 +14,7 @@ import { processLinks } from './process-links';
 
 const VAULT_DIR = 'vault';
 const TARGET_DIR = 'content';
+const PUBLIC_MD_DIR = 'public';
 const README_FILE = 'README.md';
 
 // Page slugs to omit from the sidebar (still reachable by URL).
@@ -71,17 +72,20 @@ function splitFrontmatter(content: string): { frontmatter: string | null; body: 
  */
 function mergeFrontmatter(
   existing: string | null,
-  defaults: { title: string; description: string },
+  defaults: { title: string; description: string; source: string },
 ): string {
   const titleLine = `title: "${escapeYaml(defaults.title)}"`;
   const descLine = `description: "${escapeYaml(defaults.description)}"`;
-  if (existing === null) return `---\n${titleLine}\n${descLine}\n---\n\n`;
+  const sourceLine = `source: "${escapeYaml(defaults.source)}"`;
+  if (existing === null) return `---\n${titleLine}\n${descLine}\n${sourceLine}\n---\n\n`;
   const hasTitle = /^title:\s/m.test(existing);
   const hasDescription = /^description:\s/m.test(existing);
+  const hasSource = /^source:\s/m.test(existing);
   const lines: string[] = [];
   if (!hasTitle) lines.push(titleLine);
   lines.push(existing);
   if (!hasDescription) lines.push(descLine);
+  if (!hasSource) lines.push(sourceLine);
   return `---\n${lines.join('\n')}\n---\n\n`;
 }
 
@@ -185,9 +189,15 @@ async function sync() {
 
     const title = basename(entry.relPath, '.md');
     const description = `Campaign notes for ${title}`;
-    const frontmatter = mergeFrontmatter(existingFm, { title, description });
+    const frontmatter = mergeFrontmatter(existingFm, { title, description, source: entry.relPath });
 
     writeFileSync(targetPath, frontmatter + body);
+
+    // Also emit a plain .md sibling under public/ so it's served at <url>.md
+    // for "Copy as Markdown" / "View as Markdown" links.
+    const mdTargetPath = join(PUBLIC_MD_DIR, entry.targetRel.replace(/\.mdx$/, '.md'));
+    mkdirSync(dirname(mdTargetPath), { recursive: true });
+    writeFileSync(mdTargetPath, `# ${title} (${entry.urlPath})\n\n${body}`);
 
     // Remember every directory that was created so we can write meta.json later.
     let dir = dirname(entry.targetRel);
@@ -229,8 +239,9 @@ async function sync() {
     readme = processImages(readme);
     readme = processWikilinks(readme);
     readme = processLinks(readme, linkIndex);
-    const indexFrontmatter = `---\ntitle: "War for the Crown"\ndescription: "Campaign notes, session logs, and reference material for our weekly Pathfinder 2e game."\n---\n\n`;
+    const indexFrontmatter = `---\ntitle: "War for the Crown"\ndescription: "Campaign notes, session logs, and reference material for our weekly Pathfinder 2e game."\nsource: "${README_FILE}"\n---\n\n`;
     writeFileSync(join(TARGET_DIR, 'index.mdx'), indexFrontmatter + readme);
+    writeFileSync(join(PUBLIC_MD_DIR, 'index.md'), `# War for the Crown (/)\n\n${readme}`);
   } else {
     throw new Error(
       `Vault README not found at ${readmeSource}. Landing page would be empty. Check case-sensitive filename.`,
