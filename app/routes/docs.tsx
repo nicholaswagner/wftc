@@ -6,6 +6,8 @@ import browserCollections from 'collections/browser';
 import { source } from '@/lib/source';
 import { baseOptions } from '@/lib/layout.shared';
 import { useMDXComponents } from '@/app/components/mdx';
+import { GraphProvider } from '@/app/components/campaign-graph';
+import { buildGraph } from '@/app/lib/build-graph';
 
 export async function loader({ params }: Route.LoaderArgs) {
   const splat = params['*'] ?? '';
@@ -16,6 +18,7 @@ export async function loader({ params }: Route.LoaderArgs) {
   return {
     path: page.path,
     pageTree: await source.serializePageTree(source.getPageTree()),
+    graph: slugs.length === 0 ? buildGraph() : null,
   };
 }
 
@@ -40,8 +43,10 @@ export default function Page({ loaderData }: Route.ComponentProps) {
   const { path, pageTree } = useFumadocsLoader(loaderData);
 
   return (
-    <DocsLayout {...baseOptions()} tree={pageTree}>
-      {clientLoader.useContent(path)}
-    </DocsLayout>
+    <GraphProvider value={loaderData.graph}>
+      <DocsLayout {...baseOptions()} tree={pageTree}>
+        {clientLoader.useContent(path)}
+      </DocsLayout>
+    </GraphProvider>
   );
 }
