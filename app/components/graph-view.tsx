@@ -81,15 +81,22 @@ function ClientOnly({
     }
   };
 
-  // Custom node rendering: circle with text label below
+  const nodeRadius = (node: Node) => 4 + Math.sqrt(node.neighbors?.length ?? 0) * 2;
+
+  const nodePointerAreaPaint: ForceGraphProps['nodePointerAreaPaint'] = (node, color, ctx) => {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(node.x!, node.y!, nodeRadius(node), 0, 2 * Math.PI, false);
+    ctx.fill();
+  };
+
   const nodeCanvasObject: ForceGraphProps['nodeCanvasObject'] = (node, ctx) => {
     const container = containerRef.current;
     if (!container) return;
     const style = getComputedStyle(container);
     const fontSize = 14;
-    const radius = 5;
+    const radius = nodeRadius(node);
 
-    // Draw circle
     ctx.beginPath();
     ctx.arc(node.x!, node.y!, radius, 0, 2 * Math.PI, false);
 
@@ -124,7 +131,7 @@ function ClientOnly({
       return style.getPropertyValue('--color-fd-primary');
     }
 
-    return `color-mix(in oklab, ${style.getPropertyValue('--color-fd-muted-foreground')} 50%, transparent)`;
+    return `color-mix(in oklab, ${style.getPropertyValue('--color-fd-muted-foreground')} 15%, transparent)`;
   };
 
   // Enrich nodes with neighbors for hover effects
@@ -162,12 +169,13 @@ function ClientOnly({
         }}
         graphData={enrichedNodes}
         nodeCanvasObject={nodeCanvasObject}
+        nodePointerAreaPaint={nodePointerAreaPaint}
         linkColor={linkColor}
         onNodeHover={handleNodeHover}
         onNodeClick={(node) => {
           router.push(node.url);
         }}
-        linkWidth={2}
+        linkWidth={1}
         enableNodeDrag
         enableZoomInteraction
       />

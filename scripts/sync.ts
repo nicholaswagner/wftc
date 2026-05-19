@@ -12,7 +12,7 @@ import { processWikilinks } from './process-wikilinks';
 import { processImages } from './process-images';
 import { processLinks } from './process-links';
 
-const VAULT_DIR = 'submodules/warforthecrown';
+const VAULT_DIR = 'vault';
 const TARGET_DIR = 'content';
 const README_FILE = 'README.md';
 
@@ -26,7 +26,7 @@ const SIDEBAR_DEFAULT_OPEN = new Set(['narrative', 'reference']);
 // Images referenced from React components (not from markdown wikilinks).
 // These get copied unconditionally so they're available at /vault/<name>.
 const SYSTEM_IMAGES = ['404.png'];
-const VAULT_IMAGE_DIR = 'submodules/warforthecrown/images';
+const VAULT_IMAGE_DIR = 'vault/images';
 const PUBLIC_VAULT_DIR = 'public/vault';
 
 // Top-level vault folders that get synced into content/.

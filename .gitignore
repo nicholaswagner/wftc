@@ -1,7 +1,6 @@
 .*
 !.gitignore
 !.github
-!.gitmodules
 !.nojekyll
 
 node_modules
@@ -9,4 +8,5 @@ dist
 build
 content
 public/vault
+vault
 SPECS

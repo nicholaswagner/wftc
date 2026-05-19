@@ -1,7 +1,7 @@
 import { existsSync, copyFileSync, mkdirSync } from 'node:fs';
 import { join, basename } from 'node:path';
 
-const VAULT_IMAGE_DIR = 'submodules/warforthecrown/images';
+const VAULT_IMAGE_DIR = 'vault/images';
 const PUBLIC_IMAGE_DIR = 'public/vault';
 
 /**
