@@ -1,5 +1,5 @@
 'use client';
-import { lazy, type RefObject, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, type RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
   ForceGraphMethods,
   ForceGraphProps,
@@ -28,6 +28,8 @@ export type LinkType = Record<string, unknown>;
 
 export interface GraphViewProps {
   graph: Graph;
+  focalId?: string;
+  compact?: boolean;
 }
 
 const ForceGraph2D = lazy(
@@ -44,7 +46,7 @@ export function GraphView(props: GraphViewProps) {
   return (
     <div
       ref={ref}
-      className="relative border h-[600px] [&_canvas]:size-full rounded-xl overflow-hidden bg-fd-background"
+      className="relative border size-full [&_canvas]:size-full rounded-xl overflow-hidden bg-fd-background"
     >
       {mount && <ClientOnly {...props} containerRef={ref} />}
     </div>
@@ -54,15 +56,47 @@ export function GraphView(props: GraphViewProps) {
 function ClientOnly({
   containerRef,
   graph,
+  focalId,
 }: GraphViewProps & { containerRef: RefObject<HTMLDivElement | null> }) {
+  const [fg, setFg] = useState<ForceGraphMethods<Node, Link> | null>(null);
+  const [size, setSize] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
   const graphRef = useRef<ForceGraphMethods<Node, Link> | undefined>(undefined);
   const hoveredRef = useRef<Node | null>(null);
   const router = useRouter();
   const [tooltip, setTooltip] = useState<{
     x: number;
     y: number;
+    flipX: boolean;
+    flipY: boolean;
     content: string;
   } | null>(null);
+
+  const attachRef = useCallback(
+    (instance: ForceGraphMethods<Node, Link> | undefined) => setFg(instance ?? null),
+    [],
+  );
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const measure = () => setSize({ width: el.clientWidth, height: el.clientHeight });
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [containerRef]);
+
+  useEffect(() => {
+    if (!fg) return;
+    graphRef.current = fg;
+    fg.d3Force('link', forceLink().distance(200));
+    fg.d3Force('charge', forceManyBody().strength(10));
+    fg.d3Force('collision', forceCollide(60));
+
+    const padding = Math.min(size.width, size.height) * 0.1;
+    const initialFit = setTimeout(() => fg.zoomToFit(300, padding), 400);
+    return () => clearTimeout(initialFit);
+  }, [fg, graph, size]);
 
   const handleNodeHover = (node: Node | null) => {
     const graph = graphRef.current;
@@ -71,10 +105,14 @@ function ClientOnly({
 
     if (node) {
       const coords = graph.graph2ScreenCoords(node.x!, node.y!);
+      const flipX = coords.x > size.width / 2;
+      const flipY = coords.y > size.height / 2;
       setTooltip({
-        x: coords.x + 4,
-        y: coords.y + 4,
-        content: node.description ?? 'No description',
+        x: coords.x + (flipX ? -8 : 8),
+        y: coords.y + (flipY ? -8 : 8),
+        flipX,
+        flipY,
+        content: node.text,
       });
     } else {
       setTooltip(null);
@@ -93,45 +131,35 @@ function ClientOnly({
   const nodeCanvasObject: ForceGraphProps['nodeCanvasObject'] = (node, ctx) => {
     const container = containerRef.current;
     if (!container) return;
-    const style = getComputedStyle(container);
-    const fontSize = 14;
     const radius = nodeRadius(node);
+    const isFocal = focalId !== undefined && node.id === focalId;
+    const isHovered = hoveredRef.current?.id === node.id;
+    const style = getComputedStyle(container);
 
     ctx.beginPath();
     ctx.arc(node.x!, node.y!, radius, 0, 2 * Math.PI, false);
-
-    const hoverNode = hoveredRef.current;
-    const isActive = hoverNode?.id === node.id || hoverNode?.neighbors?.includes(node.id as string);
-
-    ctx.fillStyle = isActive
-      ? style.getPropertyValue('--color-fd-primary')
-      : style.getPropertyValue('--color-purple-300');
+    ctx.fillStyle = isFocal
+      ? '#14b8a6'
+      : isHovered
+        ? '#0f766e'
+        : `color-mix(in oklab, ${style.getPropertyValue('--color-fd-muted-foreground')} 45%, transparent)`;
     ctx.fill();
-
-    // Draw text below the node
-    ctx.font = `${fontSize}px Sans-Serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = getComputedStyle(container).getPropertyValue('color');
-    ctx.fillText(node.text, node.x!, node.y! + radius + fontSize);
   };
 
   const linkColor = (link: Link) => {
     const container = containerRef.current;
     if (!container) return '#999';
-    const style = getComputedStyle(container);
     const hoverNode = hoveredRef.current;
-
     if (
       hoverNode &&
       typeof link.source === 'object' &&
       typeof link.target === 'object' &&
       (hoverNode.id === link.source.id || hoverNode.id === link.target.id)
     ) {
-      return style.getPropertyValue('--color-fd-primary');
+      return '#134e4a';
     }
-
-    return `color-mix(in oklab, ${style.getPropertyValue('--color-fd-muted-foreground')} 15%, transparent)`;
+    const style = getComputedStyle(container);
+    return `color-mix(in oklab, ${style.getPropertyValue('--color-fd-muted-foreground')} 25%, transparent)`;
   };
 
   // Enrich nodes with neighbors for hover effects
@@ -151,22 +179,14 @@ function ClientOnly({
     };
   }, [graph]);
 
+  if (size.width === 0 || size.height === 0) return null;
+
   return (
     <>
       <ForceGraph2D<NodeType, LinkType>
-        ref={{
-          get current() {
-            return graphRef.current;
-          },
-          set current(fg) {
-            graphRef.current = fg;
-            if (fg) {
-              fg.d3Force('link', forceLink().distance(200));
-              fg.d3Force('charge', forceManyBody().strength(10));
-              fg.d3Force('collision', forceCollide(60));
-            }
-          },
-        }}
+        ref={attachRef}
+        width={size.width}
+        height={size.height}
         graphData={enrichedNodes}
         nodeCanvasObject={nodeCanvasObject}
         nodePointerAreaPaint={nodePointerAreaPaint}
@@ -175,14 +195,20 @@ function ClientOnly({
         onNodeClick={(node) => {
           router.push(node.url);
         }}
+        warmupTicks={60}
+        onEngineStop={() => fg?.zoomToFit(300, Math.min(size.width, size.height) * 0.1)}
         linkWidth={1}
         enableNodeDrag
         enableZoomInteraction
       />
       {tooltip && (
         <div
-          className="absolute bg-fd-popover text-fd-popover-foreground size-fit p-2 border rounded-xl shadow-lg text-sm max-w-xs"
-          style={{ top: tooltip.y, left: tooltip.x }}
+          className="absolute bg-fd-popover text-fd-popover-foreground size-fit p-2 border rounded-xl shadow-lg text-sm max-w-xs pointer-events-none"
+          style={{
+            top: tooltip.y,
+            left: tooltip.x,
+            transform: `translate(${tooltip.flipX ? '-100%' : '0'}, ${tooltip.flipY ? '-100%' : '0'})`,
+          }}
         >
           {tooltip.content}
         </div>

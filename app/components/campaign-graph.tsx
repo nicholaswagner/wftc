@@ -6,8 +6,17 @@ const GraphContext = createContext<Graph | null>(null);
 
 export const GraphProvider = GraphContext.Provider;
 
-export function CampaignGraph() {
+export interface CampaignGraphProps {
+  compact?: boolean;
+  focalId?: string;
+}
+
+export function CampaignGraph({ compact = false, focalId }: CampaignGraphProps = {}) {
   const graph = useContext(GraphContext);
-  if (!graph) return null;
-  return <GraphView graph={graph} />;
+  if (!graph || graph.nodes.length === 0) return null;
+  return (
+    <div className={compact ? 'h-[280px]' : 'h-[600px]'}>
+      <GraphView graph={graph} focalId={focalId} compact={compact} />
+    </div>
+  );
 }

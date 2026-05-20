@@ -15,8 +15,8 @@ import browserCollections from 'collections/browser';
 import { source } from '@/lib/source';
 import { baseOptions } from '@/lib/layout.shared';
 import { useMDXComponents } from '@/app/components/mdx';
-import { GraphProvider } from '@/app/components/campaign-graph';
-import { buildGraph } from '@/app/lib/build-graph';
+import { CampaignGraph, GraphProvider } from '@/app/components/campaign-graph';
+import { buildGraph, buildNeighborhoodGraph } from '@/app/lib/build-graph';
 import { getPageImage } from '@/app/lib/og';
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -28,8 +28,9 @@ export async function loader({ params }: Route.LoaderArgs) {
   return {
     path: page.path,
     pageTree: await source.serializePageTree(source.getPageTree()),
-    graph: slugs.length === 0 ? buildGraph() : null,
+    graph: slugs.length === 0 ? buildGraph() : buildNeighborhoodGraph(page.url),
     slugs,
+    url: page.url,
     title: page.data.title,
     description: page.data.description,
   };
@@ -61,11 +62,19 @@ const clientLoader = browserCollections.docs.createClientLoader({
     const { pathname } = useLocation();
     const markdownUrl = `${pathname === '/' ? '/index' : pathname.replace(/\/$/, '')}.md`;
     const githubUrl = source ? vaultEditUrl(source) : undefined;
+    const isHome = pathname === '/';
+    const focalUrl = isHome ? undefined : pathname.replace(/\/$/, '');
+    const tocFooter = (
+      <div className="flex flex-col gap-3">
+        {githubUrl ? <EditOnGitHub href={githubUrl} /> : null}
+        {!isHome ? <CampaignGraph compact focalId={focalUrl} /> : null}
+      </div>
+    );
 
     return (
       <DocsPage
         toc={toc}
-        tableOfContent={githubUrl ? { footer: <EditOnGitHub href={githubUrl} /> } : undefined}
+        tableOfContent={{ footer: tocFooter }}
       >
         <DocsTitle>{frontmatter.title}</DocsTitle>
         <DocsDescription>{frontmatter.description}</DocsDescription>
