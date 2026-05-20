@@ -45,6 +45,13 @@ export function meta({ data }: Route.MetaArgs) {
     { property: 'og:title', content: data.title },
     { property: 'og:description', content: data.description },
     { property: 'og:image', content: imageUrl },
+    { property: 'og:image:width', content: '1200' },
+    { property: 'og:image:height', content: '630' },
+    { property: 'og:type', content: 'article' },
+    { name: 'twitter:card', content: 'summary_large_image' },
+    { name: 'twitter:title', content: data.title },
+    { name: 'twitter:description', content: data.description },
+    { name: 'twitter:image', content: imageUrl },
   ];
 }
 
