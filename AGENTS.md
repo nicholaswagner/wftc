@@ -1,3 +1,7 @@
+## ⚠️ Important
+
+**Never use `git push` or `git commit`.** The user will handle commits themselves. All deployments are handled by CI (GitHub Actions). Just make your changes and let the user commit and push.
+
 ## Vault setup
 
 The campaign vault (`nicholaswagner/warforthecrown`) is no longer a submodule. It lives at `vault/`, which is gitignored. Before running `bun run sync-content` for the first time, point `vault/` at your local working copy:

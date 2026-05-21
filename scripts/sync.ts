@@ -33,6 +33,7 @@ const PUBLIC_VAULT_DIR = 'public/vault';
 // Top-level vault folders that get synced into content/.
 // Each entry maps a vault folder to its slugified target prefix.
 const SOURCE_ROOTS: { vault: string; targetPrefix: string }[] = [
+  { vault: 'Meta', targetPrefix: 'meta' },
   { vault: 'Narrative', targetPrefix: 'narrative' },
   { vault: 'Reference', targetPrefix: 'reference' },
 ];
