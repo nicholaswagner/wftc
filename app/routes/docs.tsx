@@ -67,7 +67,7 @@ const clientLoader = browserCollections.docs.createClientLoader({
   component({ toc, frontmatter, default: Mdx }) {
     const source = (frontmatter as { source?: string }).source;
     const { pathname } = useLocation();
-    const markdownUrl = `${pathname === '/' ? '/index' : pathname.replace(/\/$/, '')}.md`;
+    const markdownUrl = `${import.meta.env.BASE_URL}${pathname === '/' ? 'index' : pathname.replace(/\/$/, '')}.md`;
     const githubUrl = source ? vaultEditUrl(source) : undefined;
     const isHome = pathname === '/';
     const focalUrl = isHome ? undefined : pathname.replace(/\/$/, '');
